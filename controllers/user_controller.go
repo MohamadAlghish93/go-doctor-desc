@@ -3,21 +3,28 @@ package controllers
 import (
 	"doc-desc/database"
 	"doc-desc/models"
-	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
+	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 var jwtSecret = []byte("your_secret_key")
 
 func generateToken(user models.User) (string, error) {
+	var roles []string
+	for _, role := range user.Roles {
+		roles = append(roles, role.Name)
+	}
+
 	claims := jwt.MapClaims{
 		"user_id":  user.ID,
 		"username": user.Username,
-		"exp":      time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
+		"roles":    roles,
+		"exp":      time.Now().Add(time.Hour * 24).Unix(),
 	}
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString(jwtSecret)
@@ -42,11 +49,13 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	database.DB.Where("username = ? AND password = ?", input.Username, input.Password).First(&user)
+	database.DB.Preload("Roles").Where("username = ? AND password = ?", input.Username, input.Password).First(&user)
 	if user.ID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
+
+	fmt.Println(user)
 
 	token, err := generateToken(user)
 	if err != nil {

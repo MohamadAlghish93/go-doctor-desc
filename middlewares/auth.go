@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -10,7 +11,7 @@ import (
 
 var jwtSecret = []byte("your_secret_key")
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(roles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("Authorization")
 		if tokenString == "" {
@@ -19,7 +20,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Extract token from "Bearer <token>"
 		parts := strings.Split(tokenString, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
@@ -40,6 +40,30 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		c.Next()
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+			c.Abort()
+			return
+		}
+
+		fmt.Println(claims["roles"])
+
+		if claims["roles"] != nil {
+
+			userRoles := claims["roles"].([]interface{})
+
+			for _, r := range roles {
+				for _, ur := range userRoles {
+					if ur == r {
+						c.Next()
+						return
+					}
+				}
+			}
+		}
+
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		c.Abort()
 	}
 }

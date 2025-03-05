@@ -15,7 +15,8 @@ func SetupRouter() *gin.Engine {
 	// middlewares
 	// Protected routes
 	protected := r.Group("/")
-	protected.Use(middlewares.AuthMiddleware())
+	//protected.Use(middlewares.AuthMiddleware())
+	protected.Use(middlewares.AuthMiddleware("admin", "user"))
 	protected.GET("/user/list", controllers.ListUsers)
 	protected.POST("/user/register", controllers.RegisterUser)
 
