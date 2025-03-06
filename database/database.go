@@ -14,5 +14,5 @@ func InitDatabase() {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	DB.AutoMigrate(&models.User{}, &models.Receipt{}, &models.Medicine{}, &models.ReceiptMedicine{}, &models.Information{}, &models.Role{})
+	DB.AutoMigrate(&models.User{}, &models.Receipt{}, &models.Medicine{}, &models.ReceiptMedicine{}, &models.Information{}, &models.Role{}, &models.UserRole{})
 }

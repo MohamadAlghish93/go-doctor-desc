@@ -20,5 +20,8 @@ func SetupRouter() *gin.Engine {
 	protected.GET("/user/list", controllers.ListUsers)
 	protected.POST("/user/register", controllers.RegisterUser)
 
+	protected.POST("/receipt/add", controllers.AddReceipt)
+	protected.GET("/receipt/getPdf", controllers.GenerateReceiptPDF)
+
 	return r
 }
